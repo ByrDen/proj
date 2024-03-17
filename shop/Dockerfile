@@ -1,4 +1,4 @@
-FROM python:3.12-alpine3.19
+FROM python:3.12-slim
 
 ARG APP_PATH=/opt
 
@@ -13,4 +13,4 @@ ENV \
 COPY ./shop $APP_PATH/shop
 COPY ./src $APP_PATH/src
 
-RUN pip install --no-cache-dir --upgrade -r $APP_PATH/blog/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r $APP_PATH/shop/requirements.txt

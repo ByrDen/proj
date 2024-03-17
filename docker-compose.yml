@@ -13,7 +13,7 @@ services:
       - ".env"
     depends_on:
       - db
-      -
+
   shop:
     container_name: "shop"
     build:
@@ -22,7 +22,7 @@ services:
     command: python -m shop
     restart: always
     ports:
-      - "80:80"
+      - "81:80"
     volumes:
       - "./src:/opt/src:ro"
       - "./shop:/opt/shop:ro"
@@ -40,3 +40,5 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: admin
+    ports:
+      - "5432:5432"
