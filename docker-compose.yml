@@ -26,6 +26,8 @@ services:
     volumes:
       - "./src:/opt/src:ro"
       - "./shop:/opt/shop:ro"
+      - "./migrations:/opt/migrations:rw"
+      - "./alembic.ini:/opt/alembic.ini:ro"
     env_file:
       - ".env"
     depends_on:

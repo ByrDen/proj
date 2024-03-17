@@ -46,7 +46,7 @@ class Man(Base):
     )
     phone = Column(VARCHAR(length=12),)
     date_add = Column(
-        TIMESTAMP,
+        TIMESTAMP(timezone=True),
         default=lambda: datetime.now(tz=UTC),
         nullable=False
     )

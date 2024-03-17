@@ -52,12 +52,12 @@ class DepartmentCreateForm(BaseModel):
         title="Departments Name",
         examples=["Fruits", "Milk"]
     )
-    man_id: list[PositiveInt] = Field(
-        default=...,
-        min_length=1,
-        title="Mans IDs who work in department.",
-        examples=[1, 2]
-    )
+    # man_id: list[PositiveInt] = Field(
+    #     default=...,
+    #     min_length=1,
+    #     title="Mans IDs who work in department.",
+    #     examples=[1, 2]
+    # )
 
 
 class DepartmentEditForm(DepartmentCreateForm):

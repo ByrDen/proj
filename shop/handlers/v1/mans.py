@@ -43,7 +43,12 @@ async def man_create(
         data: ManCreateForm
 ):
     """Создание человека"""
-    obj = Man(name=data.name.upper(), surname=data.surname.upper(), phone=data.phone, )
+    obj = Man(
+        name=data.name.upper(),
+        surname=data.surname.upper(),
+        phone=data.phone,
+        )
+    obj.slug = f"{obj.surname}-{obj.name}"
     session.add(instance=obj)
     try:
         print("Man is created!")
