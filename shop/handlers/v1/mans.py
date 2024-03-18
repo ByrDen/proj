@@ -3,6 +3,7 @@ from typing import Literal
 from fastapi import APIRouter, Query, Path, HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 from starlette import status
 
 from shop.models import Man
@@ -24,11 +25,10 @@ async def man_list(
         order: Literal["asc", "desc"] = Query(default="asc", alias="orderDirection")
 ):
     """Получение всех людей"""
-    statement = select(Man).order_by(
+    statement = select(Man).options(selectinload(Man.departments)).order_by(
         getattr(getattr(Man, order_by), order)()
     )
-    objs = await session.execute(statement
-    objs = objs.unique().scalars()
+    objs = await session.scalars(statement=statement)
     return [ManDetail.model_validate(obj=obj, from_attributes=True) for obj in objs.all()]
 
 

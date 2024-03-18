@@ -53,8 +53,7 @@ class Man(Base):
     departments = relationship(
         argument="Department",
         secondary=inspect(SalesMan).local_table,
-        back_populates="mans",
-        lazy="joined"
+        back_populates="mans"
     )
 
     def __str__(self):
@@ -70,7 +69,6 @@ class Department(Base):
     mans = relationship(
         argument="Man",
         secondary=inspect(SalesMan).local_table,
-        back_populates="departments",
-        lazy="joined"
+        back_populates="departments"
     )
 
