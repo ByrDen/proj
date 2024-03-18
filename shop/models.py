@@ -44,7 +44,7 @@ class Man(Base):
         nullable=False,
         unique=True
     )
-    phone = Column(VARCHAR(length=12),)
+    phone = Column(VARCHAR(length=12))
     date_add = Column(
         TIMESTAMP(timezone=True),
         default=lambda: datetime.now(tz=UTC),
@@ -53,7 +53,8 @@ class Man(Base):
     departments = relationship(
         argument="Department",
         secondary=inspect(SalesMan).local_table,
-        back_populates="mans"
+        back_populates="mans",
+        lazy="joined"
     )
 
     def __str__(self):
@@ -69,6 +70,7 @@ class Department(Base):
     mans = relationship(
         argument="Man",
         secondary=inspect(SalesMan).local_table,
-        back_populates="departments"
+        back_populates="departments",
+        lazy="joined"
     )
 

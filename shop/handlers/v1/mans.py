@@ -24,12 +24,11 @@ async def man_list(
         order: Literal["asc", "desc"] = Query(default="asc", alias="orderDirection")
 ):
     """Получение всех людей"""
-    objs = await session.scalars(
-        statement=select(Man)
-        .order_by(
-            getattr(getattr(Man, order_by), order)()
-        )
+    statement = select(Man).order_by(
+        getattr(getattr(Man, order_by), order)()
     )
+    objs = await session.execute(statement
+    objs = objs.unique().scalars()
     return [ManDetail.model_validate(obj=obj, from_attributes=True) for obj in objs.all()]
 
 
@@ -48,7 +47,7 @@ async def man_create(
         surname=data.surname.upper(),
         phone=data.phone,
         )
-    obj.slug = f"{obj.surname}-{obj.name}"
+    obj.slug = f"{obj.surname.lower()}-{obj.name.lower()}"
     session.add(instance=obj)
     try:
         print("Man is created!")
@@ -64,8 +63,8 @@ async def man_create(
 async def mans_update_all(
         session: DBSession
 ):
-    obj= Man()
     """Массовое Обновление всех людей"""
+    # obj= Man()
     ...
 
 

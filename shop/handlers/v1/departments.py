@@ -20,16 +20,15 @@ router = APIRouter(prefix="/departments",
 )
 async def departments_list(
         session: DBSession,
-        order_by: Literal["id", "name"] = Query(default="id", alias="orderBy"),
+        order_by: Literal["id", "dep_name"] = Query(default="id", alias="orderBy"),
         order: Literal["asc", "desc"] = Query(default="asc", alias="orderDirection")
 ):
     """Получение всех отделов"""
-    objs = await session.scalars(
-        statement=select(Department)
-        .order_by(
-            getattr(getattr(Department, order_by), order)()
-        )
+    statement = select(Department).order_by(
+        getattr(getattr(Department, order_by), order)()
     )
+    objs = await session.execute(statement=statement)
+    objs = objs.unique().scalars()
     return [DepartmentDetail.model_validate(obj=obj, from_attributes=True) for obj in objs.all()]
 
 

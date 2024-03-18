@@ -20,7 +20,7 @@ MANAGE_APP_MIGRATIONS = [
 class Config(BaseSettings):
 
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
-    DATABASE_URL: PostgresDsn = f'{os.getenv("DATABASE_URL")}'
+    DATABASE_URL: PostgresDsn = os.getenv("DATABASE_URL")
     SECRET_KEY: SecretStr = os.getenv("SECRET_KEY")
 
 
