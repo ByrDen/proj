@@ -53,9 +53,9 @@ class ManCreateForm(BaseModel):
         title="Mans Phone",
         examples=["375295955669"]
     )
-    department_id: list[PositiveInt] = Field(
+    departments: list[PositiveInt] = Field(
         default=...,
-        min_length=0,
+        min_length=1,
         title="Departments IDs where this man can work"
     )
 
@@ -65,7 +65,7 @@ class ManEditForm(ManCreateForm):
 
 
 class ManDetail(BaseModel):
-    id: PositiveInt = Field(
+    id: int = Field(
         default=...,
         title="Man ID",
         examples=[42]
@@ -75,14 +75,14 @@ class ManDetail(BaseModel):
         min_length=2,
         max_length=20,
         title="mans Name",
-        examples=["Den"]
+        examples=["Den", "Ivan", "Pupka"]
     )
     surname: str = Field(
         default=...,
         min_length=2,
         max_length=20,
         title="mans Surname",
-        examples=["Pupkin"]
+        examples=["Pupkin", "Pushkin", "Kakahin"]
     )
     slug: str = Field(
         default=...,
@@ -95,14 +95,14 @@ class ManDetail(BaseModel):
         min_length=12,
         max_length=12,
         title="Mans Phone",
-        examples=["375295955669"]
+        examples=["375291234567"]
     )
     date_add: datetime = Field(
         default=...,
         title="Date of created topic"
     )
-    departments: list[DepartmentDetail] = Field(
-        default=...,
+    departments: list[DepartmentDetail] | None = Field(
+        default=None,
         min_length=0,
         title="Departments Mans"
     )

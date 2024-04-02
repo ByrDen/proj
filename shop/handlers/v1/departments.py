@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 from starlette import status
 
+from shop import crud
 from shop.models import Department
 from shop.schemas import DepartmentDetail, DepartmentCreateForm, DepartmentEditForm
 from src.dependencies import DBSession
@@ -70,6 +71,7 @@ async def departments_delete_all():
 
 @router.get(path='/{pk}')
 async def department_detail(
+        session: DBSession,
         pk: int = Path(
             default=...,
             ge=1,
@@ -78,7 +80,7 @@ async def department_detail(
         )
 ):
     """Детали про отдел по id={pk} """
-    ...
+    return crud.get_department_by_id(session=session, pks=pk)
 
 
 @router.post(path='/{pk}')

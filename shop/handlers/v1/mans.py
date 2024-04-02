@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 from starlette import status
 
+from shop import crud
 from shop.models import Man
 from shop.schemas import ManDetail, ManCreateForm, ManEditForm
 from src.dependencies import DBSession
@@ -41,21 +42,16 @@ async def man_create(
         session: DBSession,
         data: ManCreateForm
 ):
-    """Создание человека"""
-    obj = Man(
-        name=data.name.upper(),
-        surname=data.surname.upper(),
-        phone=data.phone,
-        )
-    obj.slug = f"{obj.surname.lower()}-{obj.name.lower()}"
-    session.add(instance=obj)
+    """Создание человека""" # noqa
     try:
-        print("Man is created!")
-        await session.commit()
-        await session.refresh(instance=obj)
+        obj = await crud.create_man(
+            session=session,
+            data=data
+        )
     except IntegrityError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Man {data.name} exist")
     else:
+        # return ManDetail.model_validate(obj=obj)
         return ManDetail.model_validate(obj=obj, from_attributes=True)
 
 
@@ -113,9 +109,17 @@ async def man_update(
             examples=[42]
         ),
 ):
-    ...
     """Обновление данных о человеке с id=pk"""
-    ...
+    obj = await crud.get_man_by_id(session=session, pk=pk)
+
+    if data.name != obj.name:
+        ...
+    if data.surname != obj.surname:
+        ...
+    if data.phone != obj.phone:
+        ...
+    if data.departments != obj.departments:
+        ...
 
 
 @router.delete(path="/{pk}")
@@ -129,4 +133,4 @@ async def man_delete(
         )
 ):
     """Удаление человека по id"""
-    ...
+    obj = await crud.delete_man_by_id(session=session, pk=pk)   # Not tested
