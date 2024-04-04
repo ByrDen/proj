@@ -69,7 +69,7 @@ class Man(Base):
             argument="Department",
             secondary=inspect(SalesMan).local_table,
             back_populates="mans",
-            uselist=True,
+            lazy="joined",
         )
 
         @staticmethod
@@ -77,12 +77,12 @@ class Man(Base):
             cls.slug = slugify(" ".join([cls.name, cls.surname]), separator="_")
 
         def __str__(self):
-            return (f"{self.slug=}\n"
-                    f"{self.name=}\n"
-                    f"{self.surname=}\n"
-                    f"{self.phone=}\n"
-                    f"{self.departments=}\n"
-                    f"{self.id=}")
+            return (f"{self.slug}\n"
+                    f"{self.name}\n"
+                    f"{self.surname}\n"
+                    f"{self.phone}\n"
+                    f"{self.departments}\n"
+                    f"{self.id}")
 
 
 class Department(Base):
@@ -97,7 +97,7 @@ class Department(Base):
         argument="Man",
         secondary=inspect(SalesMan).local_table,
         back_populates="departments",
-        uselist=True,
+        lazy="selectin",
     )
 
     def __str__(self):

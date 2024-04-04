@@ -1,6 +1,4 @@
-from typing import Type
-
-from sqlalchemy import event, select
+from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -21,21 +19,22 @@ async def create_man(
         data: ManCreateForm,
 ) -> Man:
     obj = Man(
-        name=data.name.upper(),
-        surname=data.surname.upper(),
+        name=data.name.title(),
+        surname=data.surname.title(),
         phone=data.phone,
     )
-    event.listen(Man, "before_insert", Man.auto_slug_before_insert)
     dep = await get_departments_by_id(session=session, pks=data.departments)
+
+    event.listen(Man, "before_insert", Man.auto_slug_before_insert)
+
     obj.departments.extend(dep)
     session.add(instance=obj)
-
     try:
         await session.commit()
-    except IntegrityError:
-        raise
+    except IntegrityError as e:
+        raise e
     else:
-        print(obj)
+        await session.refresh(instance=obj)
         return obj
 
 
@@ -46,13 +45,14 @@ async def update_man(
 ) -> Man:
     obj = await get_man_by_id(session, pk)
 
-    return obj
+    return obj                      # no tested
 
 
 async def delete_man_by_id(session: AsyncSession, pk) -> Man:
     obj = await get_man_by_id(session=session, pk=pk)
     await session.delete(instance=obj)
-    return obj
+    await session.commit()
+    return obj          # no worked???
 
 
 async def update_departments_for_man(
@@ -73,23 +73,19 @@ async def update_departments_for_man(
         # return list(obj)
 
 
-async def get_one_department_by_id(
-        session: AsyncSession,
-        pk: int
-) -> list[Type[Department]]:
-    dep = await session.get(entity=Department, ident=pk)
-    return [dep]
-
-
 async def get_departments_by_id(
         session: AsyncSession,
-        pks: list[int]) -> list[Department]:
-    pk = tuple(pks)
-    stmt = select(Department).where(Department.id.in_(pk))
-    print(stmt)
-    deps = await session.scalars(statement=stmt)
-    print(list(deps.all()))
-    return list(deps.all())
+        pks: list[int]) -> list[Department | None]:
+    # try:
+    #     dep = [await session.get(entity=Department, ident=pk) for pk in pks]
+    # except NoResultFound:
+    #     raise NoResultFound
+    return [await session.get(entity=Department, ident=pk) for pk in pks]
+    # stmt = select(Department).where(Department.id.in_(pks))
+    # print(stmt)
+    # deps = await session.scalars(statement=stmt)
+    # print(list(deps.all()))
+    # return list(deps.all())
     # dep = await session.get(entity=Department, ident=pk)
     # return dep
     # department = await session.scalar(

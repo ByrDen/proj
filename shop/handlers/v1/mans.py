@@ -51,9 +51,7 @@ async def man_create(
     except IntegrityError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Man {data.name} exist")
     else:
-        # return ManDetail.model_validate(obj=obj)
         return ManDetail.model_validate(obj=obj, from_attributes=True)
-
 
 @router.put(path="/")
 async def mans_update_all(
@@ -72,7 +70,10 @@ async def mans_delete_all(
     ...
 
 
-@router.get(path='/{pk}')
+@router.get(
+    path='/{pk}',
+    response_model=ManDetail
+)
 async def man_detail(
         session: DBSession,
         pk: int = Path(
@@ -83,7 +84,9 @@ async def man_detail(
         )
 ):
     """Детали про человека по id={pk} """
-    ...
+    obj = await crud.get_man_by_id(session=session, pk=pk)
+    return ManDetail.model_validate(obj=obj, from_attributes=True)
+
 
 
 @router.post(path='/{pk}')
@@ -112,14 +115,14 @@ async def man_update(
     """Обновление данных о человеке с id=pk"""
     obj = await crud.get_man_by_id(session=session, pk=pk)
 
-    if data.name != obj.name:
-        ...
-    if data.surname != obj.surname:
-        ...
-    if data.phone != obj.phone:
-        ...
-    if data.departments != obj.departments:
-        ...
+    # if data.name != obj.name:
+    #     ...
+    # if data.surname != obj.surname:
+    #     ...
+    # if data.phone != obj.phone:
+    #     ...
+    # if data.departments != obj.departments:
+    #     ...
 
 
 @router.delete(path="/{pk}")
@@ -133,4 +136,5 @@ async def man_delete(
         )
 ):
     """Удаление человека по id"""
-    obj = await crud.delete_man_by_id(session=session, pk=pk)   # Not tested
+    obj = await crud.delete_man_by_id(session=session, pk=pk)
+    return ManDetail.model_validate(obj=obj, from_attributes=True)
