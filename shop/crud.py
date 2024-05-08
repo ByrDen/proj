@@ -1,5 +1,4 @@
-from sqlalchemy import event
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -10,32 +9,41 @@ from shop.schemas import ManCreateForm
 async def get_man_by_id(session: AsyncSession, pk: int) -> Man | None:
     return await session.get(
         entity=Man,
-        ident=pk,
-        options=[selectinload(Man.departments)])
+        ident=pk)
+
+
+async def get_departments_by_id(
+        session: AsyncSession,
+        pks: list[int] | int):  # -> list[Department | None]:
+    stmt = select(Department)
+
+    if isinstance(pks, list):
+        stmt = stmt.filter(Department.id.in_(pks))
+
+    if isinstance(pks, int):
+        stmt = stmt.where(Department.id == pks)
+    deps = await session.scalars(statement=stmt)
+    return deps.all()
 
 
 async def create_man(
         session: AsyncSession,
         data: ManCreateForm,
-) -> Man:
+):
     obj = Man(
         name=data.name.title(),
         surname=data.surname.title(),
         phone=data.phone,
     )
-    dep = await get_departments_by_id(session=session, pks=data.departments)
+    deps = await get_departments_by_id(session=session, pks=data.departments)
 
-    event.listen(Man, "before_insert", Man.auto_slug_before_insert)
-
-    obj.departments.extend(dep)
+    obj.departments.extend(deps)
     session.add(instance=obj)
-    try:
-        await session.commit()
-    except IntegrityError as e:
-        raise e
-    else:
-        await session.refresh(instance=obj)
-        return obj
+    await session.commit()
+    await session.refresh(instance=obj)
+    stmt = select(Man).where(Man.id == obj.id).options(selectinload(Man.departments))
+    obj_with_dep = await session.scalars(statement=stmt)
+    return obj_with_dep.all()
 
 
 async def update_man(
@@ -49,10 +57,14 @@ async def update_man(
 
 
 async def delete_man_by_id(session: AsyncSession, pk) -> Man:
+
     obj = await get_man_by_id(session=session, pk=pk)
-    await session.delete(instance=obj)
-    await session.commit()
-    return obj          # no worked???
+    if obj:
+        await session.delete(instance=obj)
+        await session.commit()
+    else:
+        raise AttributeError
+    return obj
 
 
 async def update_departments_for_man(
@@ -65,31 +77,9 @@ async def update_departments_for_man(
         if [dep.id for dep in obj.departments] == departments:
             raise IndentationError
         obj.departments = departments
-    except ValueError as e:
-        print(f"{e}")
+    except ValueError:          # Incorrect
+        raise ValueError        # Need Fix
     else:
         session.add(obj)
         await session.flush()
         # return list(obj)
-
-
-async def get_departments_by_id(
-        session: AsyncSession,
-        pks: list[int]) -> list[Department | None]:
-    # try:
-    #     dep = [await session.get(entity=Department, ident=pk) for pk in pks]
-    # except NoResultFound:
-    #     raise NoResultFound
-    return [await session.get(entity=Department, ident=pk) for pk in pks]
-    # stmt = select(Department).where(Department.id.in_(pks))
-    # print(stmt)
-    # deps = await session.scalars(statement=stmt)
-    # print(list(deps.all()))
-    # return list(deps.all())
-    # dep = await session.get(entity=Department, ident=pk)
-    # return dep
-    # department = await session.scalar(
-    #     select(Department).where(Department.id == pk),
-    #     options=(selectinload(Department.mans),),
-    # )
-    # return department

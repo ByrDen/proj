@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from slugify import slugify
 from sqlalchemy import Column, VARCHAR, TIMESTAMP, INT, ForeignKey, inspect
 from sqlalchemy.orm import relationship
+from sqlalchemy.event import listens_for
 
 from src.models import Base
 
@@ -69,20 +70,17 @@ class Man(Base):
             argument="Department",
             secondary=inspect(SalesMan).local_table,
             back_populates="mans",
-            lazy="joined",
         )
 
-        @staticmethod
-        def auto_slug_before_insert(mapper, connection, cls) -> None:
-            cls.slug = slugify(" ".join([cls.name, cls.surname]), separator="_")
-
         def __str__(self):
-            return (f"{self.slug}\n"
-                    f"{self.name}\n"
+            return (f"{self.name}\n"
                     f"{self.surname}\n"
-                    f"{self.phone}\n"
-                    f"{self.departments}\n"
                     f"{self.id}")
+
+
+@listens_for(target=Man, identifier="before_insert")
+def auto_slug_before_insert(mapper, connection, cls) -> None:
+    cls.slug = slugify(" ".join([cls.name, cls.surname]), separator="_")
 
 
 class Department(Base):

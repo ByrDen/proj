@@ -11,6 +11,10 @@ class DepartmentCreateForm(BaseModel):
         title="Departments Name",
         examples=["Fruits", "Milk"]
     )
+    id: int = Field(
+        default=None,
+        title="Departments ID"
+    )
     # mans: list[PositiveInt] = Field(
     #     default=[34],
     #     min_length=1,
@@ -24,7 +28,7 @@ class DepartmentEditForm(DepartmentCreateForm):
 
 
 class DepartmentDetail(DepartmentCreateForm):
-    id: PositiveInt = Field(
+    id: PositiveInt = Field(    # Maybe delete this?
         default=...,
         title="Departments ID",
         examples=[2, 3]
@@ -64,7 +68,7 @@ class ManEditForm(ManCreateForm):
     ...
 
 
-class ManDetail(BaseModel):
+class ManDetailWithoutDepartments(BaseModel):
     id: int = Field(
         default=...,
         title="Man ID",
@@ -101,6 +105,9 @@ class ManDetail(BaseModel):
         default=...,
         title="Date of created topic"
     )
+
+
+class ManDetail(ManDetailWithoutDepartments):
     departments: list[DepartmentDetail] | None = Field(
         default=None,
         min_length=0,

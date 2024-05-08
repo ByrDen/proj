@@ -43,10 +43,9 @@ async def departments_create(
         data: DepartmentCreateForm
 ):
     """Создание отдела"""
-    obj = Department(dep_name=data.dep_name.upper())
+    obj = Department(dep_name=data.dep_name.upper(), id=data.id)
     session.add(instance=obj)
     try:
-        print("Department create!")
         await session.commit()
         await session.refresh(obj)
     except IntegrityError:
@@ -80,7 +79,8 @@ async def department_detail(
         )
 ):
     """Детали про отдел по id={pk} """
-    return crud.get_department_by_id(session=session, pks=pk)
+    deps = await crud.get_departments_by_id(session=session, pks=pk)
+    return DepartmentDetail.model_validate(obj=deps, from_attributes=True)
 
 
 @router.post(path='/{pk}')

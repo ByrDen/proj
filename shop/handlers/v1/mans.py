@@ -8,11 +8,32 @@ from starlette import status
 
 from shop import crud
 from shop.models import Man
-from shop.schemas import ManDetail, ManCreateForm, ManEditForm
+from shop.schemas import ManDetail, ManCreateForm, ManEditForm, ManDetailWithoutDepartments
 from src.dependencies import DBSession
 
 router = APIRouter(prefix="/mans",
                    tags=["Mans"])
+
+
+@router.post(
+    path="/",
+    response_model=ManDetail,
+    name="shop_man_create"
+)
+async def man_create(
+        session: DBSession,
+        data: ManCreateForm
+):
+    """Создание человека""" # noqa
+    try:
+        obj = await crud.create_man(
+            session=session,
+            data=data
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Man {data.surname} {data.name} exist")
+    else:
+        return ManDetail.model_validate(obj=obj[0], from_attributes=True)
 
 
 @router.get(
@@ -32,26 +53,6 @@ async def man_list(
     objs = await session.scalars(statement=statement)
     return [ManDetail.model_validate(obj=obj, from_attributes=True) for obj in objs.all()]
 
-
-@router.post(
-    path="/",
-    response_model=ManDetail,
-    name="shop_man_create"
-)
-async def man_create(
-        session: DBSession,
-        data: ManCreateForm
-):
-    """Создание человека""" # noqa
-    try:
-        obj = await crud.create_man(
-            session=session,
-            data=data
-        )
-    except IntegrityError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Man {data.name} exist")
-    else:
-        return ManDetail.model_validate(obj=obj, from_attributes=True)
 
 @router.put(path="/")
 async def mans_update_all(
@@ -86,7 +87,6 @@ async def man_detail(
     """Детали про человека по id={pk} """
     obj = await crud.get_man_by_id(session=session, pk=pk)
     return ManDetail.model_validate(obj=obj, from_attributes=True)
-
 
 
 @router.post(path='/{pk}')
@@ -136,5 +136,9 @@ async def man_delete(
         )
 ):
     """Удаление человека по id"""
-    obj = await crud.delete_man_by_id(session=session, pk=pk)
-    return ManDetail.model_validate(obj=obj, from_attributes=True)
+    try:
+        obj = await crud.delete_man_by_id(session=session, pk=pk)
+    except AttributeError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Man Doesn't exist")
+    else:
+        return ManDetailWithoutDepartments.model_validate(obj=obj, from_attributes=True)
